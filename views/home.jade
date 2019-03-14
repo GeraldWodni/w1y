@@ -1,0 +1,18 @@
+extends layout
+
+block content
+    h1.text-center.logo
+        img(src="/images/dudeLights.png")
+        span= title
+    p.text-center Look kids, this site works w/ and w/o js :D
+
+    ul#simulator
+        each i in _.range( parCount )
+            li
+                svg.par(data-index=i, viewBox="-1 -1 33 70")
+                    circle(cx=16, cy=16, r=16, fill="#000", stroke="#CCC", stroke-width="0.4")
+
+                    each c in _.range(6)
+                        - var color = "rgbwau"[c]
+                        rect( x=4*c+5, y=37, width=2, height=32, fill=channelColors[color] )
+

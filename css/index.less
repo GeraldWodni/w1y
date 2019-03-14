@@ -1,0 +1,80 @@
+@import "normalize.less"; 
+@import "mixins.less"; 
+
+@color: #FFF;
+@background: #333;
+
+@maxWidth: 700px;
+
+@grid: 20px;
+
+@glow: #FFF;
+@glowFade: 15px;
+
+@parCount: 6;
+@parPadding: 10px;
+
+body {
+    color: @color;
+    background: @background;
+
+    font-family: monospace;
+}
+
+/* layout */
+h1.logo {
+    @logo-height: 178px;
+
+    height: @logo-height;
+
+    margin: @grid 0;
+    img {
+        display: inline-block;
+        margin-right: 20px;
+    }
+
+    img, span {
+        line-height: 1;
+        vertical-align: middle;
+    }
+}
+
+/* behaviour */
+.text-center {
+    text-align: center;
+}
+
+/* content */
+#content {
+    border-left: 1px solid @glow;
+    border-right: 1px solid @glow;
+    margin: 0 auto;
+    max-width: @maxWidth;
+    min-height: 100vh;
+
+    .clearfix;
+
+    box-shadow: 0 0 @glowFade @glow;
+
+}
+
+/* simulator */
+ul#simulator {
+    list-style: none;
+    padding-left: 0;
+
+    @svgWidth: 98%/@parCount;
+    font-size: 0;
+    text-align: center;
+
+    li {
+        width: @svgWidth;
+        display: inline-block;
+        margin: 0;
+
+        svg {
+            width: 90%;
+        }
+    }
+
+}

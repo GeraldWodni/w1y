@@ -1,0 +1,15 @@
+doctype html
+
+include mixins
+
+html
+    head
+        title= title
+        meta(name="viewport",content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width")
+        link(rel="shortcut icon", href="/images/favicon.ico")
+        +style('/css/index.css')
+        +styles
+    body(class=bodyClass)
+        #content
+            block content
+            +scripts
