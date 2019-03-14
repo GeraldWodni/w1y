@@ -7,9 +7,10 @@ block content
     p.text-center Look kids, this site works w/ and w/o js :D
 
     ul#simulator
-        each i in _.range( parCount )
+        each i in _.range( pars.length )
+            - var address = pars[i];
             li
-                svg.par(data-index=i, viewBox="-1 -1 33 70")
+                svg.par(data-index=i, data-address=address, viewBox="-1 -1 33 70")
                     circle(cx=16, cy=16, r=16, fill="#000", stroke="#CCC", stroke-width="0.4")
 
                     each c in _.range(6)
