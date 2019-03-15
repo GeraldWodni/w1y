@@ -30,6 +30,23 @@ module.exports = {
             k.jade.render( req, res, "home", vals(req) );
         });
 
+        /* frontend websocket */
+        k.ws(k.website, "/dmx", function( ws ) {
+            console.log("WEBSOCKET HERE!");
+            ws.send( "Get Ready" );
+            k.reg("dmx").addCallback( function( buffer ) {
+                try {
+                    ws.send( buffer );
+                    return true;
+                }
+                catch( err ) {
+                    console.log( "Websocket Error, remove callback", err );
+                    return false;
+                }
+            });
+        });
+
+        /* subscribe to socketIO on dashboard and send queued Animations to dmx */
         const socketIoHost = k.getWebsiteConfig( "dashboard" );
         const socket = socketIoClient( socketIoHost );
 

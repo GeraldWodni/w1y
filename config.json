@@ -1,5 +1,6 @@
 {
     ".*": {
+        "autoLoad": true,
         "dashboard": "http://10.1.1.1:5000",
         "serialPort": {
             "port": "/dev/ttyUSB0",
@@ -9,7 +10,7 @@
             "pars":  [ 39, 45, 51, 57 ]
         }
     },
-    "themis": {
-        "autoload": true
+    "hybris": {
+        "fakeSerialPortIfNotFound": true
     }
 }

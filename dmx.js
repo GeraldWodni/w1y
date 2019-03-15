@@ -8,6 +8,7 @@ const dmxChannels = 128;
 const buffer = Buffer.alloc( dmxChannels );
 var pars = [];
 var queue = [];
+var callbacks = [];
 
 function setChannel( index, value ) {
     buffer[ index-1 ] = value;
@@ -95,6 +96,14 @@ function playAnimation() {
 
     if( _.has( animations[ currentAnmation ], "run" ) )
         animations[ currentAnmation ].run( animationCountdown );
+
+    //console.log( "ANIMATION:", currentAnmation );
+    var newCallbacks = [];
+    callbacks.forEach( callback => {
+        if( callback( buffer ) )
+            newCallbacks.push( callback );
+    });
+    callbacks = newCallbacks;
 }
 
 module.exports = {
@@ -110,6 +119,13 @@ module.exports = {
         console.log( "SERIAL START".bold.yellow );
         port.on( "error", function( err ) {
             console.log( "SERIAL ERROR".bold.yellow, err );
+
+            if( k.getWebsiteConfig( "fakeSerialPortIfNotFound", false ) ) {
+                console.log( "STARTING FAKE PORT".bold.yellow );
+                setInterval( function() {
+                    playAnimation();
+                }, 500 );
+            }
         });
 
         var mode = "waitSync";
@@ -142,8 +158,11 @@ module.exports = {
     getParCount() {
         return pars.length;
     },
-    queueAnimation(name) {
+    queueAnimation( name ) {
         queue.push( name );
+    },
+    addCallback( callback ) {
+        callbacks.push( callback );
     }
 }
 
