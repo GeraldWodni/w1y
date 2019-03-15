@@ -21,12 +21,22 @@ module.exports = {
                     "w": "#CCC",
                     "a": "#F80",
                     "u": "#80F",
-                }
+                },
+                animations: k.reg("dmx").getAnimations(),
+                mood: k.reg("dmx").getMood()
             });
         }
 
-        /* kids, this is what a simple api looks like */
+        /* http/rest access */
         k.router.get("/", function( req, res ) {
+            k.jade.render( req, res, "home", vals(req) );
+        });
+        k.router.postman("/", function( req, res ) {
+            if( req.postman.exists( "queueAnimation" ) )
+                k.reg("dmx").queueAnimation( req.postman.id("animation") )
+            if( req.postman.exists( "mood" ) )
+                k.reg("dmx").setMood( req.postman.decimal("mood") );
+
             k.jade.render( req, res, "home", vals(req) );
         });
 
@@ -40,8 +50,17 @@ module.exports = {
                     return true;
                 }
                 catch( err ) {
-                    console.log( "Websocket Error, remove callback", err );
+                    console.log( "Websocket Error, remove callback" );
                     return false;
+                }
+            });
+
+            ws.on("message", function( data ) {
+                var obj = JSON.parse(data);
+                switch( obj.action ) {
+                    case "setMood":
+                        k.reg("dmx").setMood( obj.value );
+                        break;
                 }
             });
         });

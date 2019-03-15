@@ -7,6 +7,20 @@ block content
         span= title
     p.text-center Look kids, this site works w/ and w/o js :D
 
+    form#animations(method="post")
+        label Animation
+        select(name="animation")
+            each animation in animations
+                option(value=animation)= animation
+        button(type="submit", name="queueAnimation")
+            | 🚨 Queue
+
+    form#mood(method="post")
+        label Mood (😠↔🙃)
+        input(type="range", name="mood", min="0" max="1", step="0.01", value=mood)
+        button(type="submit", name="setMood")
+            | 💡 Set
+
     ul#simulator
         each i in _.range( pars.length )
             - var address = pars[i];

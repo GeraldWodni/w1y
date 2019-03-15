@@ -26,9 +26,12 @@ function setAllPars( color ) {
 
 var currentAnmation = "init";
 var animationCountdown = 0;
+var mood = 0.5;
+var moodFade = 0.0;
+
 const animations = {
     init: {
-        cycles: 0,
+        cycles: 50,
         init: function() {
             setAllPars( [   0,   0,   0,   0, 255, 0] );
         },
@@ -64,40 +67,42 @@ const animations = {
             setAllPars(                [   0,     0,   0,   0, 0, 0] );
             setPar( (cycle/4)%pars.length, [   255,   0,   0,   0, 0, 0] );
         }
-    },
-    moodHappy: {
-        cycles: 0,
-        init: function() {
-            setAllPars( [   0, 255,   0,   0, 0, 0] );
-        }
-    },
-    moodNeutral: {
-        cycles: 0,
-        init: function() {
-            setAllPars( [ 255, 255,   0,   0, 0, 0] );
-        }
-    },
-    moodSad: {
-        cycles: 0,
-        init: function() {
-            setAllPars( [ 255,   0,   0,   0, 0, 0] );
-        }
     }
 };
 
 function playAnimation() {
     if( animationCountdown == 0 && queue.length > 0 ) {
+        /* get next animation */
         currentAnmation = queue.shift();
         animations[ currentAnmation ].init();
         animationCountdown = animations[ currentAnmation ].cycles;
     }
-    else if( animationCountdown > 0 )
+    else if( animationCountdown > 0 ) {
+        /* play current animation */
+        if( _.has( animations[ currentAnmation ], "run" ) )
+            animations[ currentAnmation ].run( animationCountdown );
         animationCountdown--;
+    }
+    else {
+        /* set mood */
+        moodFade += 0.002;
+        const moodShift = 1.0 / pars.length;
 
-    if( _.has( animations[ currentAnmation ], "run" ) )
-        animations[ currentAnmation ].run( animationCountdown );
+        var r = 0, g = 0, b = 0;
+        r = Math.max( 0, 255 * (1-mood) );
+        g = 255 - r;
 
-    //console.log( "ANIMATION:", currentAnmation );
+        for( var i = 0; i < pars.length; i++ ) {
+            var channelFade = ( moodFade + i*moodShift ) % 2.0;
+            channelFade = channelFade > 1.0 ? 2.0 - channelFade : channelFade;
+
+            b = channelFade * 255;
+            setPar( i, [r, g, b, 0, 0, 0 ] );
+        }
+    }
+
+
+    /* write callbacks */
     var newCallbacks = [];
     callbacks.forEach( callback => {
         if( callback( buffer ) )
@@ -124,7 +129,7 @@ module.exports = {
                 console.log( "STARTING FAKE PORT".bold.yellow );
                 setInterval( function() {
                     playAnimation();
-                }, 500 );
+                }, 50 );
             }
         });
 
@@ -160,6 +165,16 @@ module.exports = {
     },
     queueAnimation( name ) {
         queue.push( name );
+    },
+    getAnimations() {
+        return _.keys( animations );
+    },
+    setMood( m ) {
+        console.log( "MOOD:", m );
+        mood = m;
+    },
+    getMood() {
+        return mood;
     },
     addCallback( callback ) {
         callbacks.push( callback );
