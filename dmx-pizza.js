@@ -8,7 +8,6 @@ const dmxChannels = 128;
 const buffer = Buffer.alloc( dmxChannels );
 var pars = [];
 var queue = [];
-var callbacks = [];
 
 function setChannel( index, value ) {
     buffer[ index-1 ] = value;
@@ -26,12 +25,9 @@ function setAllPars( color ) {
 
 var currentAnmation = "init";
 var animationCountdown = 0;
-var mood = 0.5;
-var moodFade = 0.0;
-
 const animations = {
     init: {
-        cycles: 50,
+        cycles: 0,
         init: function() {
             setAllPars( [   0,   0,   0,   0, 255, 0] );
         },
@@ -45,15 +41,18 @@ const animations = {
             setPar( 0, [ 255,   0,   0,   0, 0, 0] );
             setPar( 1, [   0,   0,   0, 255, 0, 0] );
             setPar( 2, [   0, 255,   0,   0, 0, 0] );
-            setPar( 3, [ 255,   0,   0,   0, 0, 0] );
-            setPar( 4, [   0,   0,   0, 255, 0, 0] );
-            setPar( 5, [   0, 255,   0,   0, 0, 0] );
-            setPar( 6, [ 255,   0,   0,   0, 0, 0] );
-            setPar( 7, [   0,   0,   0, 255, 0, 0] );
+            setPar( 3, [   0,   0,   0,   0, 0, 0] );
+        },
+        run: function(cycle) {
+            setPar( 0, [ 255,   0,   0,   0, 0, 0] );
+            setPar( 1, [   0,   0,   0, 255, 0, 0] );
+            setPar( 2, [   0, 255,   0,   0, 0, 0] );
+            setPar( 3, [   0,   0,   0,   0, 0, 0] );
+            setPar( Math.round((cycle%(3*10))/10), [   0,   0,   0,   0, 0, 0] );
         }
     },
     placeFirst: {
-        cycles: 44*4,
+        cycles: 44*1.5,
         init: function() {
             setAllPars( [   0,   0,   0, 255, 0, 0] );
         },
@@ -68,68 +67,42 @@ const animations = {
             setAllPars( [   0,   0,   0, 255, 0, 0] );
         },
         run: function(cycle) {
+            const count = pars.length
             setAllPars(                [   0,     0,   0,   0, 0, 0] );
-            setPar( (cycle/4)%pars.length, [   255,   0,   0,   0, 0, 0] );
-            setPar( (cycle/4*2)%pars.length, [   255,   0,   0,   0, 0, 0] );
+            setPar( Math.round((cycle%(count*4))/4), [   255,   0,   0,   0, 0, 0] );
+        }
+    },
+    moodHappy: {
+        cycles: 0,
+        init: function() {
+            setAllPars( [   0, 255,   0,   0, 0, 0] );
+        }
+    },
+    moodNeutral: {
+        cycles: 0,
+        init: function() {
+            setAllPars( [ 255, 255,   0,   0, 0, 0] );
+        }
+    },
+    moodSad: {
+        cycles: 0,
+        init: function() {
+            setAllPars( [ 255,   0,   0,   0, 0, 0] );
         }
     }
 };
 
 function playAnimation() {
     if( animationCountdown == 0 && queue.length > 0 ) {
-        /* get next animation */
-        try {
-            currentAnmation = queue.shift();
-            animations[ currentAnmation ].init();
-            animationCountdown = animations[ currentAnmation ].cycles;
-        }
-        catch( err ) {
-            console.log( "Ignore animation:", err );
-        }
+        currentAnmation = queue.shift();
+        animations[ currentAnmation ].init();
+        animationCountdown = animations[ currentAnmation ].cycles;
     }
-    else if( animationCountdown > 0 ) {
-        try {
-            /* play current animation */
-            if( _.has( animations[ currentAnmation ], "run" ) )
-                animations[ currentAnmation ].run( animationCountdown );
-            animationCountdown--;
-        }
-        catch( err ) {
-            console.log( "Ignore countdown:", err );
-        }
-    }
-    else {
-        /* set mood */
-        moodFade += 0.002;
-        const moodShift = 1.0 / pars.length;
+    else if( animationCountdown > 0 )
+        animationCountdown--;
 
-        var r = 0, g = 0, b = 0;
-        r = Math.max( 0, 255 * (1-mood) );
-        g = 255 - r;
-
-        for( var i = 0; i < pars.length; i++ ) {
-            var channelFade = ( moodFade + i*moodShift ) % 2.0;
-            channelFade = channelFade > 1.0 ? 2.0 - channelFade : channelFade;
-
-            b = channelFade * 128;
-            setPar( i, [r, g, b, 0, 0, 0 ] );
-        }
-    }
-
-
-    /* write callbacks */
-    var newCallbacks = [];
-    callbacks.forEach( callback => {
-        try {
-            if( callback( buffer ) )
-                newCallbacks.push( callback );
-        }
-        catch( err ) {
-            console.log( "Callback Error, disconnting", animationCountdown );
-        }
-    });
-    callbacks = newCallbacks;
-    //console.log( "DMX here", animationCountdown );
+    if( _.has( animations[ currentAnmation ], "run" ) )
+        animations[ currentAnmation ].run( animationCountdown );
 }
 
 module.exports = {
@@ -145,13 +118,6 @@ module.exports = {
         console.log( "SERIAL START".bold.yellow );
         port.on( "error", function( err ) {
             console.log( "SERIAL ERROR".bold.yellow, err );
-
-            if( k.getWebsiteConfig( "fakeSerialPortIfNotFound", false ) ) {
-                console.log( "STARTING FAKE PORT".bold.yellow );
-                setInterval( function() {
-                    playAnimation();
-                }, 50 );
-            }
         });
 
         var mode = "waitSync";
@@ -172,12 +138,10 @@ module.exports = {
             }
             
             playAnimation();
-            //console.log( "Write" );
             port.write( buffer );
         });
 
         /* initial write */
-        console.log( "InitialWrite" );
         port.write( buffer );
     },
     setChannel: setChannel,
@@ -186,21 +150,11 @@ module.exports = {
     getParCount() {
         return pars.length;
     },
-    queueAnimation( name ) {
-        queue.push( name );
-    },
     getAnimations() {
         return _.keys( animations );
     },
-    setMood( m ) {
-        console.log( "MOOD:", m );
-        mood = m;
-    },
-    getMood() {
-        return mood;
-    },
-    addCallback( callback ) {
-        callbacks.push( callback );
+    queueAnimation(name) {
+        queue.push( name );
     }
 }
 

@@ -1,13 +1,14 @@
 {
     ".*": {
         "autoLoad": true,
-        "dashboard": "http://10.1.1.1:5000",
+        "dashboardX": "http://10.1.1.1:5000",
+        "dashboard": "http://service.w0y.at",
         "serialPort": {
             "port": "/dev/ttyUSB0",
             "baudRate": 115200
         },
         "devices": {
-            "pars":  [ 39, 45, 51, 57 ]
+            "pars":  [ 39, 45, 51, 57, 63, 69, 75, 81 ]
         }
     },
     "hybris": {

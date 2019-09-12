@@ -86,12 +86,7 @@ module.exports = {
             var happyness = okCount / (failCount + okCount);
             console.log( "HAPPYNESS".bold.red, happyness.toFixed(2) );
 
-            if( happyness >0.6 )
-                k.reg("dmx").queueAnimation( "moodHappy" );
-            else if( happyness < 0.3 )
-                k.reg("dmx").queueAnimation( "moodSad" );
-            else
-                k.reg("dmx").queueAnimation( "moodNeutral" );
+            k.reg("dmx").setMood( happyness );
         });
         var lastAlert = 0;
         socket.on('updateAlerts', function(data){
